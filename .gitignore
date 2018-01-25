@@ -3,6 +3,7 @@
 *.a
 *.in
 tags
+*.inc
 
 # Autosetup's jimsh
 autosetup/jimsh0
@@ -95,3 +96,4 @@ po/neomutt.pot
 .clang_complete
 
 html
+doxygen-build.txt

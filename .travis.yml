@@ -10,46 +10,23 @@ dist: trusty
 
 language: c
 compiler: gcc
-cache: ccache
 
 addons:
   apt:
     packages:
-      - libgpgme11-dev
-      - libnotmuch-dev
-      - libtokyocabinet-dev
-      - libkyotocabinet-dev
-      - libgdbm-dev
-      - libdb-dev
-      - liblmdb-dev
-      - libqdbm-dev
-      - libslang2-dev
-      - libgnutls-dev
-      - libssl-dev
-      - libsasl2-dev
-      - libgss-dev
-      - xsltproc
-      - lynx
-      - docbook-simple
-      - docbook-xsl
-      - libxml2-utils
-      - gettext
-      - lua5.2
-      - liblua5.2-dev
-      - autopoint
+      - doxygen
+      - graphviz
 
 git:
   depth: 3
 
-install:
-  - git clone --depth 1 https://github.com/neomutt/travis-build.git ~/config
-
-before_script:
-  - ccache --zero-stats
+env:
+  global:
+    - IGNORE: "Consider increasing DOT_GRAPH_MAX_NODES"
 
 script:
-  - ~/config/build
-
-after_script:
-  - ccache --show-stats
+  - .travis/gen-tables.sh conn/*.c hcache/hcache.h imap/*.c mutt/*.c ncrypt/*.c addrbook.c body.c complete.c compress.c copy.c editmsg.c enter.c envelope.c filter.c flags.c *from.c history.c hook.c main.c mutt_account.c mutt_logging.c mutt_signal.c mutt_socket.c mutt_window.c mx.c newsrc.c nntp.c pop.c pop_auth.c postpone.c progress.c resize.c rfc1524.c safe_asprintf.c sidebar.c status.c system.c tags.c terminal.c version.c
+  - doxygen doxygen/doxygen.conf
+  - grep -v "$IGNORE" doxygen-build.txt | tee tmp.txt
+  - test ! -s tmp.txt
 
