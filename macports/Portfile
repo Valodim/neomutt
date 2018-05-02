@@ -21,7 +21,7 @@ homepage            https://www.neomutt.org
 fetch.type          git
 git.url             file://@@REPO_PATH@@
 
-depends_build       port:docbook-xml-4.2 port:docbook-xsl port:libxslt port:w3m
+depends_build       port:docbook-xml-4.2 port:docbook-xsl-nons port:libxslt port:w3m
 depends_lib         path:lib/libssl.dylib:openssl \
                     port:gettext \
                     port:libiconv \
