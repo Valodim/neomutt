@@ -1,55 +1,54 @@
 notifications:
-  email:
-    recipients:
-      - rich@flatcap.org
-    on_success: change
-    on_failure: always
+  email: false
 
 sudo: false
 dist: trusty
 
 language: c
 compiler: gcc
-cache: ccache
 
 addons:
   apt:
     packages:
-      - libgpgme11-dev
-      - libnotmuch-dev
-      - libtokyocabinet-dev
-      - libkyotocabinet-dev
-      - libgdbm-dev
-      - libdb-dev
-      - liblmdb-dev
-      - libqdbm-dev
-      - libslang2-dev
-      - libgnutls-dev
-      - libssl-dev
-      - libsasl2-dev
-      - libgss-dev
-      - xsltproc
-      - lynx
+      - autopoint
+      - ca-certificates
       - docbook-simple
       - docbook-xsl
-      - libxml2-utils
       - gettext
-      - lua5.2
+      - libdb-dev
+      - libgdbm-dev
+      - libgnutls-dev
+      - libgpgme11-dev
+      - libgss-dev
+      - libkyotocabinet-dev
+      - liblmdb-dev
       - liblua5.2-dev
-      - autopoint
+      - libnotmuch-dev
+      - libqdbm-dev
+      - libsasl2-dev
+      - libslang2-dev
+      - libssl-dev
+      - libtokyocabinet-dev
+      - libxml2-utils
+      - lua5.2
+      - lynx
+      - xsltproc
+  coverity_scan:
+    project:
+      name: "neomutt/neomutt"
+      description: "Teaching an Old Dog New Tricks"
+    notification_email: rich@flatcap.org
+    build_command_prepend: "./configure $OPTS"
+    build_command: "make"
+    branch_pattern: coverity
 
 git:
   depth: 3
 
-install:
-  - git clone --depth 1 https://github.com/neomutt/travis-build.git ~/config
-
-before_script:
-  - ccache --zero-stats
+env:
+  matrix:
+    - OPTS="--disable-doc --gpgme --lua --notmuch --bdb --with-domain=example.com --gdbm --gnutls --gss --homespool --kyotocabinet --lmdb --mixmaster --qdbm --sasl --tokyocabinet"
 
 script:
-  - ~/config/build
-
-after_script:
-  - ccache --show-stats
+  - if [ ${COVERITY_SCAN_BRANCH} != 1 ]; then make ; fi
 
