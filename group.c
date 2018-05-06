@@ -28,6 +28,8 @@
 #include "globals.h"
 #include "protos.h"
 
+static STAILQ_HEAD(, GroupContext) GroupContexts = STAILQ_HEAD_INITIALIZER(GroupContexts);
+
 struct Group *mutt_pattern_group(const char *k)
 {
   struct Group *p = NULL;
@@ -58,23 +60,13 @@ static void group_remove(struct Group *g)
   FREE(&g);
 }
 
-int mutt_group_context_clear(struct GroupContextHead **head)
+int mutt_group_context_clear(struct GroupContext **head)
 {
-/** I guess here is wrong
-  struct GroupContext *t = NULL;
-  for (; ctx && *ctx; (*ctx) = t)
-  {
-    group_remove((*ctx)->g);
-    t = (*ctx)->next;
-    FREE(ctx);
-  }
-**/
-  struct GroupContext *np, *tmp;
-  STAILQ_FOREACH_SAFE((np), (*head), entries, tmp)
+  struct GroupContext *np = NULL, *tmp = NULL;
+  STAILQ_FOREACH_SAFE(np, &GroupContexts, entries, tmp)
   {
     group_remove((np)->g);
     FREE(&(np));
-
   }
   return 0;
 }
@@ -86,27 +78,29 @@ static int empty_group(struct Group *g)
   return !g->as && !g->rs;
 }
 
-void mutt_group_context_add(struct GroupContextHead **head, struct Group *group)
+void mutt_group_context_add(struct GroupContext **head, struct Group *group)
 {
-  struct GroupContext *np;
-  STAILQ_FOREACH(np, (*head), entries)
+  struct GroupContext *np = NULL;
+  STAILQ_FOREACH(np, &GroupContexts, entries)
   {
     if (np->g == group)
       return;
-
   }
   np = mutt_mem_calloc(1, sizeof(struct GroupContext));
   np->g = group;
+  STAILQ_INSERT_TAIL(&GroupContexts, np, entries);
 }
 
-void mutt_group_context_destroy(struct GroupContextHead **head)
+/* Does  **__destory() to be INIT or other operations ?*/
+void mutt_group_context_destroy(struct GroupContext **head)
 {
-  struct GroupContext *np, *tmp;
-  STAILQ_FOREACH_SAFE(np, (*head), entries, tmp)
+  struct GroupContext *np = NULL, *tmp = NULL;
+  STAILQ_FOREACH_SAFE(np, &GroupContexts, entries, tmp)
   {
-    STAILQ_REMOVE((*head), np, GroupContext, entries);
+    STAILQ_REMOVE(&GroupContexts, np, GroupContext, entries);
     FREE(&np);
   }
+  STAILQ_INIT(&GroupContexts);
 }
 
 static void group_add_addrlist(struct Group *g, struct Address *a)
@@ -151,72 +145,68 @@ static int group_remove_regex(struct Group *g, const char *s)
   return mutt_regexlist_remove(&g->rs, s);
 }
 
-void mutt_group_context_add_addrlist(struct GroupContextHead *head, struct Address *a)
+void mutt_group_context_add_addrlist(struct GroupContext *head, struct Address *a)
 {
-  struct GroupContext *np;
-  STAILQ_FOREACH(np, head, entries)
+  struct GroupContext *np = NULL;
+  STAILQ_FOREACH(np, &GroupContexts, entries)
   {
     group_add_addrlist(np->g, a);
   }
 }
 
-int mutt_group_context_remove_addrlist(struct GroupContextHead *head, struct Address *a)
+int mutt_group_context_remove_addrlist(struct GroupContext *head, struct Address *a)
 {
   int rc = 0;
-  struct GroupContext *np, *tmp;
-  /*
-  for (; (!rc) && ctx; ctx = ctx->next)
-  {
-    rc = group_remove_addrlist(ctx->g, a);
-    if (empty_group(ctx->g))
-      group_remove(ctx->g);
-  }*/
+  struct GroupContext *np = NULL, *tmp = NULL;
 
-  STAILQ_FOREACH_SAFE(np, head, entries, tmp)
+  if (!rc)
   {
-	if (!rc)
-	{
-	  rc = group_remove_addrlist(np->g, a);
-	  if (empty_group(np->g))
-            group_remove(np->g);
-	}
+    STAILQ_FOREACH_SAFE(np, &GroupContexts, entries, tmp)
+    {
+      if (!rc)
+      {
+        rc = group_remove_addrlist(np->g, a);
+        if (empty_group(np->g))
+          group_remove(np->g);
+      }
+      STAILQ_REMOVE(&GroupContexts, np, GroupContext, entries);
+    }
+    FREE(&np);
   }
 
   return rc;
 }
 
-int mutt_group_context_add_regex(struct GroupContextHead *head, const char *s,
+int mutt_group_context_add_regex(struct GroupContext *head, const char *s,
                                  int flags, struct Buffer *err)
 {
   int rc = 0;
-  struct GroupContext *np;
-  STAILQ_FOREACH(np, head, entries)
+  struct GroupContext *np = NULL;
+  if (!rc)
   {
-    if(!rc)
-      rc = group_add_regex(np->g, s, flags, err);
+    STAILQ_FOREACH(np, &GroupContexts, entries)
+    {
+      if (!rc)
+        rc = group_add_regex(np->g, s, flags, err);
+    }
   }
   return rc;
 }
 
-int mutt_group_context_remove_regex(struct GroupContextHead *head, const char *s)
+int mutt_group_context_remove_regex(struct GroupContext *head, const char *s)
 {
   int rc = 0;
-/**
-  for (; (!rc) && ctx; ctx = ctx->next)
+  struct GroupContext *np = NULL, *tmp = NULL;
+  if (!rc)
   {
-    rc = group_remove_regex(ctx->g, s);
-    if (empty_group(ctx->g))
-      group_remove(ctx->g);
-  }
-**/
-  struct GroupContext *np, *tmp;
-  STAILQ_FOREACH_SAFE(np, head, entries, tmp)
-  {
-    if(!rc)
+    STAILQ_FOREACH_SAFE(np, &GroupContexts, entries, tmp)
     {
-      rc = group_remove_regex(np->g, s);
-      if (empty_group(np->g))
-        group_remove(np->g);
+      if (!rc)
+      {
+        rc = group_remove_regex(np->g, s);
+        if (empty_group(np->g))
+          group_remove(np->g);
+      }
     }
   }
   return rc;
