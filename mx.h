@@ -76,6 +76,7 @@ enum MailboxFormat
   MUTT_NOTMUCH,
   MUTT_POP,
   MUTT_COMPRESSED,
+  MUTT_HELP,
 };
 
 #define MMDF_SEP "\001\001\001\001\n"

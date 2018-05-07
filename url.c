@@ -39,7 +39,8 @@ static const struct Mapping UrlMap[] = {
 #ifdef USE_NOTMUCH
   { "notmuch", U_NOTMUCH },
 #endif
-  { "smtp", U_SMTP },       { "smtps", U_SMTPS },   { NULL, U_UNKNOWN },
+  { "smtp", U_SMTP },       { "smtps", U_SMTPS },   { "help", U_HELP },
+  { NULL, U_UNKNOWN },
 };
 
 int url_pct_decode(char *s)

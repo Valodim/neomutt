@@ -44,6 +44,7 @@ enum UrlScheme
 #ifdef USE_NOTMUCH
   U_NOTMUCH,
 #endif
+  U_HELP,
   U_UNKNOWN
 };
 
