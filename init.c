@@ -1069,7 +1069,7 @@ static void alternates_clean(void)
 static int parse_alternates(struct Buffer *buf, struct Buffer *s,
                             unsigned long data, struct Buffer *err)
 {
-  struct GroupContext *gc = NULL;
+  struct GroupContextHead *gc = NULL;
 
   alternates_clean();
 
@@ -1077,7 +1077,7 @@ static int parse_alternates(struct Buffer *buf, struct Buffer *s,
   {
     mutt_extract_token(buf, s, 0);
 
-    if (parse_group_context(&gc, buf, s, data, err) == -1)
+    if (parse_group_context(gc, buf, s, data, err) == -1)
       goto bail;
 
     mutt_regexlist_remove(&UnAlternates, buf->data);
@@ -1089,11 +1089,11 @@ static int parse_alternates(struct Buffer *buf, struct Buffer *s,
       goto bail;
   } while (MoreArgs(s));
 
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return 0;
 
 bail:
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return -1;
 }
 
@@ -1327,13 +1327,13 @@ static int parse_path_unlist(struct Buffer *buf, struct Buffer *s,
 static int parse_lists(struct Buffer *buf, struct Buffer *s, unsigned long data,
                        struct Buffer *err)
 {
-  struct GroupContext *gc = NULL;
+  struct GroupContextHead *gc = NULL;
 
   do
   {
     mutt_extract_token(buf, s, 0);
 
-    if (parse_group_context(&gc, buf, s, data, err) == -1)
+    if (parse_group_context(gc, buf, s, data, err) == -1)
       goto bail;
 
     mutt_regexlist_remove(&UnMailLists, buf->data);
@@ -1345,11 +1345,11 @@ static int parse_lists(struct Buffer *buf, struct Buffer *s, unsigned long data,
       goto bail;
   } while (MoreArgs(s));
 
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return 0;
 
 bail:
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return -1;
 }
 
@@ -1366,7 +1366,7 @@ enum GroupState
 static int parse_group(struct Buffer *buf, struct Buffer *s, unsigned long data,
                        struct Buffer *err)
 {
-  struct GroupContext *gc = NULL;
+  struct GroupContextHead *gc = NULL;
   enum GroupState state = GS_NONE;
   struct Address *addr = NULL;
   char *estr = NULL;
@@ -1374,12 +1374,12 @@ static int parse_group(struct Buffer *buf, struct Buffer *s, unsigned long data,
   do
   {
     mutt_extract_token(buf, s, 0);
-    if (parse_group_context(&gc, buf, s, data, err) == -1)
+    if (parse_group_context(gc, buf, s, data, err) == -1)
       goto bail;
 
     if (data == MUTT_UNGROUP && (mutt_str_strcasecmp(buf->data, "*") == 0))
     {
-      if (mutt_group_context_clear(&gc) < 0)
+      if (mutt_group_context_clear(gc) < 0)
         goto bail;
       goto out;
     }
@@ -1433,11 +1433,11 @@ static int parse_group(struct Buffer *buf, struct Buffer *s, unsigned long data,
   } while (MoreArgs(s));
 
 out:
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return 0;
 
 bail:
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return -1;
 }
 
@@ -1734,13 +1734,13 @@ static int parse_unlists(struct Buffer *buf, struct Buffer *s,
 static int parse_subscribe(struct Buffer *buf, struct Buffer *s,
                            unsigned long data, struct Buffer *err)
 {
-  struct GroupContext *gc = NULL;
+  struct GroupContextHead *gc = NULL;
 
   do
   {
     mutt_extract_token(buf, s, 0);
 
-    if (parse_group_context(&gc, buf, s, data, err) == -1)
+    if (parse_group_context(gc, buf, s, data, err) == -1)
       goto bail;
 
     mutt_regexlist_remove(&UnMailLists, buf->data);
@@ -1754,11 +1754,11 @@ static int parse_subscribe(struct Buffer *buf, struct Buffer *s,
       goto bail;
   } while (MoreArgs(s));
 
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return 0;
 
 bail:
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return -1;
 }
 
@@ -1835,7 +1835,7 @@ static int parse_alias(struct Buffer *buf, struct Buffer *s, unsigned long data,
   struct Alias *tmp = Aliases;
   struct Alias *last = NULL;
   char *estr = NULL;
-  struct GroupContext *gc = NULL;
+  struct GroupContextHead *gc = NULL;
 
   if (!MoreArgs(s))
   {
@@ -1845,7 +1845,7 @@ static int parse_alias(struct Buffer *buf, struct Buffer *s, unsigned long data,
 
   mutt_extract_token(buf, s, 0);
 
-  if (parse_group_context(&gc, buf, s, data, err) == -1)
+  if (parse_group_context(gc, buf, s, data, err) == -1)
     return -1;
 
   /* check to see if an alias with this name already exists */
@@ -1905,11 +1905,11 @@ static int parse_alias(struct Buffer *buf, struct Buffer *s, unsigned long data,
         mutt_debug(3, "  Group %s\n", a->mailbox);
     }
   }
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return 0;
 
 bail:
-  mutt_group_context_destroy(&gc);
+  mutt_group_context_destroy(gc);
   return -1;
 }
 
@@ -4114,7 +4114,7 @@ int mutt_get_hook_type(const char *name)
   return 0;
 }
 
-static int parse_group_context(struct GroupContext **ctx, struct Buffer *buf,
+static int parse_group_context(struct GroupContextHead *ctx, struct Buffer *buf,
                                struct Buffer *s, unsigned long data, struct Buffer *err)
 {
   while (mutt_str_strcasecmp(buf->data, "-group") == 0)
