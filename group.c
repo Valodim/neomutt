@@ -94,15 +94,15 @@ void mutt_group_context_add(struct GroupContextHead *head, struct Group *group)
 /* Does  **__destory() to be INIT or other operations ?*/
 void mutt_group_context_destroy(struct GroupContextHead *head)
 {
-  /*
+
   struct GroupContext *np = NULL, *tmp = NULL;
   STAILQ_FOREACH_SAFE(np, head, entries, tmp)
   {
     STAILQ_REMOVE(head, np, GroupContext, entries);
     FREE(&np);
   }
-  */
-  STAILQ_EMPTY(head);
+
+ /* STAILQ_EMPTY(head);*/
 }
 
 static void group_add_addrlist(struct Group *g, struct Address *a)
